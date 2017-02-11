@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -67,14 +68,30 @@ func renderTemplate(tplb []byte, envs map[string]string, unsetErr bool) (string,
 	return txt.String(), err
 }
 
+func stringToFileMode(mode string) (os.FileMode, error) {
+	m, err := strconv.ParseInt(mode, 8, 0)
+	if err != nil {
+		var fmode os.FileMode
+		return fmode, err
+	}
+
+	return os.FileMode(m), err
+}
+
+func writeFile(fpath, data string, perm os.FileMode) error {
+	return ioutil.WriteFile(fpath, []byte(data), perm)
+}
+
 var (
-	file  = kingpin.Flag("file", "Template file").Short('f').String()
-	unset = kingpin.Flag("unset-error", "Treat unset variables as an error").Short('u').Bool()
+	file   = kingpin.Flag("file", "Template file").Short('f').String()
+	unset  = kingpin.Flag("unset-error", "Treat unset variables as an error").Short('u').Bool()
+	output = kingpin.Flag("output", "Write the output to the file rather than to stdout").Short('o').PlaceHolder("FILENAME").String()
+	mode   = kingpin.Flag("mode", "File permission").Default("0644").String()
 )
 
 func main() {
 	kingpin.CommandLine.Help = "Expand environment variables in template (the templates use Go text/template syntax)"
-	kingpin.Version("0.1.0")
+	kingpin.Version("0.1.1")
 	kingpin.Parse()
 
 	f, ferr := getFp(*file)
@@ -95,5 +112,17 @@ func main() {
 		log.Fatal(terr)
 	}
 
-	fmt.Print(txt)
+	if *output != "" {
+		m, merr := stringToFileMode(*mode)
+		if merr != nil {
+			log.Fatal(merr)
+		}
+
+		werr := writeFile(*output, txt, m)
+		if werr != nil {
+			log.Fatal(werr)
+		}
+	} else {
+		fmt.Print(txt)
+	}
 }
