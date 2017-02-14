@@ -14,7 +14,17 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-var re = regexp.MustCompile(`template: :([0-9]+):([0-9]+): executing .+: map has no entry for key "(.+)"`)
+var (
+	re      = regexp.MustCompile(`template: :([0-9]+):([0-9]+): executing .+: map has no entry for key "(.+)"`)
+	funcMap = template.FuncMap{
+		"default": func(def, val string) string {
+			if val != "" {
+				return val
+			}
+			return def
+		},
+	}
+)
 
 func getFp(filename string) (*os.File, error) {
 	var f *os.File
@@ -48,14 +58,6 @@ func getEnvMap() map[string]string {
 }
 
 func renderTemplate(tplb []byte, envs map[string]string, unsetErr bool) (string, error) {
-	funcMap := template.FuncMap{
-		"default": func(def, val string) string {
-			if val != "" {
-				return val
-			}
-			return def
-		},
-	}
 	option := "zero"
 	if unsetErr {
 		option = "error"
