@@ -28,17 +28,20 @@ Flags:
 $ cat test.tpl
 - {{.foo}}
 - {{.bar}}
+- {{.baz|default "hoge"}}
 
 $ ./envlate -f test.tpl
 -
 -
+- hoge
 
 $ foo=baz bar=qux ./envlate -f test.tpl
 - baz
 - qux
+- hoge
 
-$ echo "{{.foo}}" | foo=bar ./envlate
-bar
+$ echo "{{.foo}} {{.hoge|default \"fuga\"}}" | foo=bar ./envlate
+bar fuga
 
 $ ./envlate -f test.tpl -u
 2017/02/11 21:52:35 line 1 char 4 : no entry for key `foo`
