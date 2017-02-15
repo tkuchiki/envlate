@@ -63,7 +63,7 @@ func renderTemplate(tplb []byte, envs map[string]string, unsetErr bool) (string,
 		option = "error"
 	}
 
-	t := template.New("t").Option("missingkey=" + option).Funcs(funcMap)
+	t := template.New("").Option("missingkey=" + option).Funcs(funcMap)
 	tpl, err := t.Parse(string(tplb))
 	if err != nil {
 		return "", err
