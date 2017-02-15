@@ -51,4 +51,7 @@ $ cat test.txt
 bar
 
 $ foo="foo,bar,baz" ./envlate -f examples/split.tpl
+- foo
+- bar
+- baz
 ```
