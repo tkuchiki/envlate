@@ -1,0 +1,3 @@
+{{range split .foo "," -}}
+- {{.}}
+{{ end -}}

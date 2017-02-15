@@ -29,11 +29,11 @@ $ cat test.tpl
 - {{.foo}}
 - {{.bar}}
 
-$ ./envlate -f test.tpl
+$ ./envlate -f examples/test.tpl
 -
 -
 
-$ foo=baz bar=qux ./envlate -f test.tpl
+$ foo=baz bar=qux ./envlate -f examples/test.tpl
 - baz
 - qux
 
@@ -43,10 +43,15 @@ bar
 $ echo '{{or .foo "baz"}}' | ./envlate
 baz
 
-$ ./envlate -f test.tpl -u
+$ ./envlate -f examples/test.tpl -u
 2017/02/11 21:52:35 line 1 char 4 : no entry for key `foo`
 
 $ echo "{{.foo}}" | foo=bar ./envlate -o test.txt
 $ cat test.txt
 bar
+
+$ foo="foo,bar,baz" ./envlate -f examples/split.tpl
+- foo
+- bar
+- baz
 ```
