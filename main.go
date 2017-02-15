@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,6 +10,20 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"gopkg.in/alecthomas/kingpin.v2"
+)
+
+var (
+	re      = regexp.MustCompile(`template: :([0-9]+):([0-9]+): executing .+: map has no entry for key "(.+)"`)
+	funcMap = template.FuncMap{
+		"default": func(def, val string) string {
+			if val != "" {
+				return val
+			}
+			return def
+		},
+	}
 )
 
 func getFp(filename string) (*os.File, error) {
@@ -45,20 +58,20 @@ func getEnvMap() map[string]string {
 }
 
 func renderTemplate(tplb []byte, envs map[string]string, unsetErr bool) (string, error) {
-	tpl, err := template.New("").Parse(string(tplb))
-	if err != nil {
-		return "", err
-	}
-
 	option := "zero"
 	if unsetErr {
 		option = "error"
 	}
 
-	var txt bytes.Buffer
-	err = tpl.Option("missingkey="+option).Execute(&txt, envs)
+	t := template.New("").Option("missingkey=" + option).Funcs(funcMap)
+	tpl, err := t.Parse(string(tplb))
 	if err != nil {
-		re := regexp.MustCompile(`template: :([0-9]+):([0-9]+): executing .+: map has no entry for key "(.+)"`)
+		return "", err
+	}
+
+	var txt bytes.Buffer
+	err = tpl.Execute(&txt, envs)
+	if err != nil {
 		group := re.FindStringSubmatch(err.Error())
 		if len(group) != 4 {
 			return "", err
